@@ -1,0 +1,206 @@
+---
+interface Props {
+  title: string;
+}
+
+import "../styles.scss";
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="h-100">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="description"
+      content="Kevin Lauer is a software developer based out of Chicago, Illinois, USA."
+    />
+    <meta
+      name="keywords"
+      content="Chicago, USA, software development, full-stack development, Astro, React, Django, front-end development, static website development, web design, web development, software engineering, JavaScript, Python, HTML, CSS, UX/UI design, responsive design, software solutions, tech in Chicago"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <!-- Open Graph / Facebook Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.kevinlauer.dev/" />
+    <meta property="og:title" content="Kevin Lauer" />
+    <meta
+      property="og:description"
+      content="Kevin Lauer is a software developer based out of Chicago, Illinois, USA."
+    />
+    <meta property="og:image" content="/kevinlauer_og.png" />
+    <meta property="og:image:alt" content="Kevin Lauer Logo" />
+
+    <!-- Twitter Meta Tags -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://www.kevinlauer.dev/" />
+    <meta property="twitter:title" content="Kevin Lauer" />
+    <meta
+      property="twitter:description"
+      content="Kevin Lauer is a software developer based out of Chicago, Illinois, USA."
+    />
+    <meta property="twitter:image" content="/kevinlauer_twitter.png" />
+    <meta property="twitter:image:alt" content="Kevin Lauer Logo" />
+
+    <meta name="generator" content={Astro.generator} />
+    <title>Kevin Lauer</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+      defer></script>
+    <link
+      rel="preload"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+  </head>
+  <body class="d-flex flex-column h-100">
+    <header>
+      <nav class="navbar fixed-top">
+        <div class="container-fluid d-flex justify-content-end">
+          <button
+            class="btn btn-light btn-lg border-radius-50"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasNavbar"
+            aria-controls="offcanvasNavbar"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div
+            class="offcanvas offcanvas-end"
+            tabindex="-1"
+            id="offcanvasNavbar"
+            aria-labelledby="offcanvasNavbarLabel"
+          >
+            <div class="offcanvas-header pb-1">
+              <h1 class="offcanvas-title" id="offcanvasNavbarLabel">
+                <a
+                  href="/"
+                  class="fw-bold inter-tight text-dark fw-bold display-4 text-decoration-none"
+                  >Kevin Lauer</a
+                >
+              </h1>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"></button>
+            </div>
+            <div
+              class="offcanvas-body pt-0 d-flex flex-column justify-content-between"
+            >
+              <div class="">
+                <ul class="navbar-nav justify-content-end pe-3 pb-0 mb-0">
+                  <li class="nav-item fs-5">
+                    <a class="nav-link" href="#about">About Me</a>
+                  </li>
+                  <li class="nav-item fs-5">
+                    <a class="nav-link" href="#freelance">Freelance</a>
+                  </li>
+                  <li class="nav-item fs-5">
+                    <a class="nav-link" href="#personal">Personal</a>
+                  </li>
+                  <li class="nav-item fs-5">
+                    <a class="nav-link" href="#resume">Résumé</a>
+                  </li>
+                  <li class="nav-item fs-5">
+                    <a class="nav-link" href="#whyme">Why Me</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="d-flex">
+                <a
+                  class="nav-link"
+                  href="mailto:ktlauer@proton.me"
+                  aria-label="Send me an email"
+                  title="Email"
+                >
+                  <i class="bi bi-envelope-fill fs-4" aria-hidden="true"></i>
+                </a>
+                <a
+                  class="nav-link ms-3"
+                  href="https://www.linkedin.com/in/ktlauer/"
+                  aria-label="Visit my LinkedIn profile"
+                  title="LinkedIn Profile"
+                >
+                  <i class="bi bi-linkedin fs-4" aria-hidden="true"></i>
+                </a>
+                <a
+                  class="nav-link ms-3"
+                  href="https://github.com/kloovin112358"
+                  aria-label="Visit my GitHub profile"
+                  title="GitHub Profile"
+                >
+                  <i class="bi bi-github fs-4" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <main class="flex-shrink-0">
+      <slot />
+    </main>
+    <footer class="border-top footer mt-auto">
+      <div class="container-fluid">
+        <div class="pt-3 fs-6 pb-5">
+          <div class="d-flex justify-content-between flex-wrap">
+            <div class="me-3 mb-2 mb-sm-0">
+              <div>
+                <small
+                  ><span class="fw-bold"
+                    >© 2024 Kevin Lauer Digital. All Rights Reserved.</span
+                  ><br /><a
+                    href="https://skfb.ly/o9pPT"
+                    class="text-secondary fst-italic text-decoration-none"
+                    >3D model courtesy of LasquetiSpice on Sketchfab</a
+                  ></small
+                >
+              </div>
+            </div>
+            <div class="d-flex">
+              <a
+                class="nav-link"
+                href="mailto:ktlauer@proton.me"
+                aria-label="Send me an email"
+                title="Email"
+              >
+                <i class="bi bi-envelope-fill" aria-hidden="true"></i>
+              </a>
+              <a
+                class="nav-link ms-3"
+                href="https://www.linkedin.com/in/ktlauer/"
+                aria-label="Visit my LinkedIn profile"
+                title="LinkedIn Profile"
+              >
+                <i class="bi bi-linkedin" aria-hidden="true"></i>
+              </a>
+              <a
+                class="nav-link ms-3"
+                href="https://github.com/kloovin112358"
+                aria-label="Visit my GitHub profile"
+                title="GitHub Profile"
+              >
+                <i class="bi bi-github" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+---
+const {
+  companyName,
+  descriptionText,
+  dateStart,
+  dateEnd,
+  jobRole,
+  backgroundColorHover,
+  textColorHover,
+  borderHover,
+  siteLink,
+  slideIndex,
+} = Astro.props;
+---
+
+<style>
+  .resumeCard:focus {
+    outline: none;
+  }
+  .resumeCard {
+    min-width: 500px;
+    height: 400px;
+    transition:
+      background-color 0.4s ease,
+      color 0.4s ease;
+  }
+
+  @media (max-width: 767.98px) {
+    .resumeCard {
+      min-width: 310px;
+      height: 450px;
+    }
+  }
+  @media (min-width: 767.99px) and (max-width: 991.98px) {
+    .resumeCard {
+      min-width: 400px;
+      height: 600px;
+    }
+  }
+  #resumeSlide1.activeResumeCard {
+    color: white !important;
+    background-color: #ff0000 !important;
+  }
+
+  #resumeSlide2.activeResumeCard {
+    background-color: rgb(255, 230, 0) !important;
+  }
+
+  #resumeSlide3.activeResumeCard {
+    color: white !important;
+    background-color: #1e4d9e !important;
+    border: 1px solid white !important;
+  }
+
+  #resumeSlide4.activeResumeCard {
+    background-color: #ffcd11 !important;
+  }
+
+  #resumeSlide5.activeResumeCard {
+    background-color: #ffcd11 !important;
+  }
+
+  #resumeSlide6.activeResumeCard {
+    color: white !important;
+    background-color: #740f15 !important;
+    border: 1px solid white !important;
+  }
+</style>
+<a
+  href=`${siteLink}`
+  class="text-decoration-none"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <div
+    id=`resumeSlide${slideIndex}`
+    class="card border-radius-50 resumeCard activeResumeCard"
+    aria-label=`Slide ${slideIndex} of 6: ${jobRole} at ${companyName}, ${dateStart} - ${dateEnd}`
+    tabindex="0"
+    role="group"
+  >
+    <div class="card-body p-5 d-flex flex-column justify-content-between h-100">
+      <div>
+        <h2 class="display-4 inter-tight fw-bold lh-1">{companyName}</h2>
+        <p class="fs-5">{jobRole}</p><hr />
+        <p>{descriptionText}</p>
+      </div>
+      <p class="inter-tight">{dateEnd} - {dateStart}</p>
+    </div>
+  </div></a
+>

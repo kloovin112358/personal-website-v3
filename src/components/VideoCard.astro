@@ -1,0 +1,44 @@
+---
+const { videoNameOnCDN, videoPosterNameOnCDN, altText, dataSpeed } =
+  Astro.props;
+import { getCldVideoUrl, getCldImageUrl } from "astro-cloudinary/helpers";
+const videoUrl = getCldVideoUrl({
+  src: `https://res.cloudinary.com/dvbmnr7qn/video/upload/f_webm/q_auto:good/c_crop,h_600,w_516/${videoNameOnCDN}`,
+});
+const videoPosterURL = getCldImageUrl({
+  src: `https://res.cloudinary.com/dvbmnr7qn/image/upload/q_auto:low/${videoPosterNameOnCDN}`,
+});
+---
+
+<style>
+  .videoCard {
+    overflow: hidden;
+  }
+  .videoCard video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Makes sure the video scales properly without stretching */
+    border-radius: inherit; /* Inherit the card's rounded corners */
+  }
+</style>
+<div
+  class="card videoCard border-radius-50 parallaxItem"
+  data-speed=`${dataSpeed}`
+>
+  <video
+    preload="none"
+    autoplay
+    muted
+    loop
+    style="width:100%;height:100%"
+    aria-hidden="true"
+    poster=`${videoPosterURL}`
+  >
+    <source src={videoUrl} type="video/webm" />
+  </video>
+</div>
+
+<!-- Screen reader only text for description -->
+<span class="visually-hidden">
+  {altText}
+</span>

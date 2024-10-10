@@ -1,0 +1,27 @@
+$primary: #FF0000 ;
+@import "bootstrap/scss/bootstrap";
+
+body {
+    font-family: 'Inter', sans-serif;
+  }
+.inter-tight {
+    font-family: "Inter Tight", sans-serif;
+}
+.border-radius-50 {
+    border-radius: 50px;
+}
+
+.bottomCornersRounded {
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+}
+
+.topCornersRounded {
+    border-top-left-radius: 50px;
+    border-top-right-radius: 50px;
+}
+
+.plyr {
+    border-radius: 10px;
+    border: 1px solid #000
+  }

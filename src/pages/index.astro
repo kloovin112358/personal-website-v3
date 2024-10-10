@@ -1,0 +1,901 @@
+---
+import Layout from "../layouts/Layout.astro";
+import VideoCard from "../components/VideoCard.astro";
+import ResumeCard from "../components/ResumeCard.astro";
+---
+
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+<style>
+  body {
+    overflow-x: hidden;
+  }
+  .fullHeightSection {
+    min-height: 100dvh;
+    min-height: 100vh;
+  }
+  .massiveText {
+    font-size: clamp(7rem, 25vw, 30rem);
+    line-height: 0.8;
+  }
+  .lessMassiveText {
+    font-size: clamp(4rem, 10vw, 15rem);
+    line-height: 1;
+  }
+  .evenLessMassiveText {
+    font-size: clamp(3rem, 10vw, 15rem);
+    line-height: 1;
+  }
+  .marquee {
+    height: 75px; /* Adjust height as needed */
+    width: 100%; /* Adjust width as needed */
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .marquee--inner {
+    display: block;
+    width: 200%; /* Ensures we have enough space for scrolling */
+    position: absolute;
+    animation: marquee 30s linear infinite; /* Adjust speed here */
+  }
+
+  .scrolling-text {
+    font-size: 25px;
+  }
+
+  @keyframes marquee {
+    0% {
+      right: 0;
+    }
+    100% {
+      right: -100%; /* Move all the way to the left */
+    }
+  }
+  .cursor-follower {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 100%;
+    background-color: #ffb3b3;
+    opacity: 0;
+    z-index: 10000;
+    user-select: none;
+    pointer-events: none;
+  }
+  #astronautContainer {
+    position: absolute; /* Positioning it above other content */
+    width: 55%;
+    left: 0;
+    height: 100%;
+    pointer-events: none; /* Prevent interaction if it's over other elements */
+    z-index: 999; /* Highest z-index to ensure it stays on top */
+  }
+  #aboutMeCard {
+    max-width: 45rem;
+  }
+  #videoHeader {
+    margin-left: 266px;
+  }
+  @media (max-width: 992px) {
+    #aboutMeContent {
+      margin-top: 85dvh;
+      margin-top: 85vh;
+    }
+    #astronautContainer {
+      width: 100%;
+      bottom: -95%;
+    }
+    #aboutMeCard {
+      max-width: 100%;
+    }
+    #videoHeader {
+      margin-left: 0px;
+    }
+  }
+  @media (min-width: 992.01px) and (max-width: 1200px) {
+    #astronautContainer {
+      height: 80%;
+      width: 60%;
+    }
+  }
+  .card-video-top {
+    border-radius: inherit;
+  }
+  .accordion-item {
+    border: 1px solid #000; /* Dark border */
+  }
+
+  .accordion-button {
+    border-bottom: 1px solid #000; /* Dark border between header and body */
+  }
+
+  .accordion-button:not(.collapsed) {
+    border-color: #000; /* Darker border when accordion is open */
+  }
+
+  .accordion-body {
+    border-top: 1px solid #000; /* Dark border for the body */
+  }
+  .leftNavSection {
+    width: 250px;
+  }
+  :root {
+    --plyr-color-main: #ff0000;
+  }
+</style>
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import * as THREE from "three";
+  import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+  import Plyr from "plyr";
+
+  gsap.registerPlugin(ScrollTrigger);
+  const canvasContainer = document.getElementById("astronautContainer");
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    canvasContainer.clientWidth / canvasContainer.clientHeight, // Update to match container size
+    0.1,
+    1000
+  );
+  camera.position.set(0, 2.5, 3); // Adjusted to better fit the model in view
+
+  const renderer = new THREE.WebGLRenderer({ alpha: true }); // Enable transparent background
+  renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight); // Set size to container size
+  canvasContainer.insertBefore(renderer.domElement, canvasContainer.firstChild); // Insert canvas
+
+  // Add Hemisphere Light
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8d8d8d, 10);
+  hemiLight.position.set(0, 20, 0);
+  scene.add(hemiLight);
+
+  // Load the glTF model with animations
+  let model;
+  let mixer; // Define mixer globally so it can be updated during animation
+
+  const loader = new GLTFLoader();
+  loader.load(
+    "/animated_floating_astronaut_in_space_suit_loop-v1.glb", // Path to your animated model
+    (gltf) => {
+      model = gltf.scene; // Get the model scene
+      scene.add(model); // Add model to the scene
+
+      // Create an AnimationMixer, and attach the model to it
+      mixer = new THREE.AnimationMixer(model);
+
+      // Play the first animation clip (assuming glTF has animations)
+      if (gltf.animations.length > 0) {
+        const action = mixer.clipAction(gltf.animations[0]);
+        action.play(); // Play the first animation
+      }
+
+      // // Optionally visualize the skeleton (for debugging)
+      // const skeletonHelper = new THREE.SkeletonHelper(model);
+      // scene.add(skeletonHelper);
+    },
+    undefined, // onProgress
+    (error) => {
+      console.error("Error loading the model:", error);
+    }
+  );
+
+  // Animation loop function
+  const clock = new THREE.Clock(); // Clock to keep track of time for animation updates
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // If the mixer is defined, update the animation mixer
+    if (mixer) {
+      const delta = clock.getDelta(); // Get the time passed since last frame
+      mixer.update(delta); // Update animation based on time
+    }
+
+    renderer.render(scene, camera); // Render the scene with the camera
+  }
+  animate();
+
+  // Handle window resize
+  window.addEventListener("resize", () => {
+    // Update camera and renderer for large viewports
+    renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+    camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  // custom cursor animation courtsey of Diona Rodrigues (https://dionarodrigues.dev/blog/how-create-a-custom-cursor-follower-with-gsap)
+  const isTouchDevice = "ontouchstart" in window;
+
+  const createCursorFollower = () => {
+    const $el = document.querySelector(".cursor-follower");
+
+    // Each time the mouse coordinates are updated, we need to pass the values to gsap in order to animate the element
+    window.addEventListener("mousemove", (e) => {
+      const { target, x, y } = e;
+
+      const isTargetLinkOrBtn =
+        target?.closest("a") || target?.closest("button");
+
+      gsap.to($el, {
+        x: x + 3,
+        y: y + 3,
+        duration: 0.7,
+        ease: "power4", // More easing options here: https://gsap.com/docs/v3/Eases/
+        opacity: isTargetLinkOrBtn ? 0.6 : 1,
+        transform: `scale(${isTargetLinkOrBtn ? 3 : 1})`,
+      });
+    });
+
+    document.addEventListener("mouseleave", (e) => {
+      gsap.to($el, {
+        duration: 0.7,
+        opacity: 0,
+      });
+    });
+  };
+
+  // Only create the cursor follower if device isn't touchable
+  if (!isTouchDevice) {
+    createCursorFollower();
+  }
+  const carousel = document.getElementById("resumeCarousel");
+  const prevButton = document.getElementById("prev");
+  const nextButton = document.getElementById("next");
+  const cards = carousel.querySelectorAll(".resumeCard");
+
+  // Set the scroll amount (distance moved per click)
+  function getScrollAmount() {
+    if (window.matchMedia("(max-width: 767.98px)").matches) {
+      return 326;
+    } else if (
+      window.matchMedia("(min-width: 767.99px) and (max-width: 991.98px)")
+        .matches
+    ) {
+      return 208; // Between 767.99px and 991.98px
+    } else {
+      return 258; // Larger than 991.98px
+    }
+  }
+
+  // Function to update the active card based on scroll position
+  function updateActiveCard() {
+    cards.forEach((card) => {
+      const cardRect = card.getBoundingClientRect();
+      // Check if the card is within 15px from the left of the viewport
+      if (cardRect.left <= 80 && cardRect.right >= 80) {
+        card.classList.add("activeResumeCard");
+        card.focus();
+      } else {
+        card.classList.remove("activeResumeCard");
+      }
+    });
+  }
+
+  // Scroll event listener to update the active card
+  carousel.addEventListener("scroll", updateActiveCard);
+
+  // Click event listeners for navigation buttons
+  nextButton.addEventListener("click", () => {
+    const scrollAmount = getScrollAmount();
+    carousel.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    updateActiveCard(); // Update active card after scrolling
+  });
+
+  prevButton.addEventListener("click", () => {
+    const scrollAmount = getScrollAmount();
+    carousel.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+    updateActiveCard(); // Update active card after scrolling
+  });
+
+  // Mouseover and mouseout event listeners for each card
+  cards.forEach((card) => {
+    card.addEventListener("mouseover", () => {
+      card.classList.add("activeResumeCard");
+    });
+
+    card.addEventListener("mouseout", () => {
+      updateActiveCard(); // Update active card to handle mouseout
+    });
+  });
+
+  // Initial check to set active card on page load
+  updateActiveCard();
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const players = document.querySelectorAll(".player");
+
+    players.forEach((playerElement) => {
+      const player = new Plyr(playerElement, {});
+    });
+  });
+  document.addEventListener("DOMContentLoaded", function () {
+    const triggerTabListDesktop = document.querySelectorAll(
+      "#largeTabsList .nav-link"
+    );
+    const triggerTabListMobile = document.querySelectorAll(
+      "#pills-tab .nav-link"
+    );
+
+    // Function to sync tabs
+    const syncTabs = (sourceTabs, targetTabs) => {
+      sourceTabs.forEach((sourceTab, index) => {
+        const tabTrigger = new bootstrap.Tab(sourceTab);
+
+        sourceTab.addEventListener("click", (event) => {
+          event.preventDefault();
+          tabTrigger.show();
+
+          // Show the corresponding tab in the other list
+          const targetTabTrigger = new bootstrap.Tab(targetTabs[index]);
+          targetTabTrigger.show();
+        });
+      });
+    };
+
+    // Sync mobile tabs to desktop tabs
+    syncTabs(triggerTabListMobile, triggerTabListDesktop);
+
+    // Sync desktop tabs to mobile tabs
+    syncTabs(triggerTabListDesktop, triggerTabListMobile);
+  });
+</script>
+<Layout title="Home">
+  <span class="cursor-follower"></span>
+  <section class="fullHeightSection bg-primary">
+    <div class="container-fluid text-white">
+      <h1 class="display-1 fw-bold inter-tight pt-5 massiveText">
+        Kevin Lauer
+      </h1>
+      <div class="marquee mb-4" aria-hidden="true">
+        <div class="marquee--inner">
+          <span class="scrolling-text">
+            I'm not a pencil pusher. I'm not a pencil pusher. I'm not a pencil
+            pusher. I'm not a pencil pusher. I'm not a pencil pusher. I'm not a
+            pencil pusher. I'm not a pencil pusher. I'm not a pencil pusher. I'm
+            not a pencil pusher. I'm not a pencil pusher. I'm not a pencil
+            pusher. I'm not a pencil pusher. I'm not a pencil pusher. I'm not a
+            pencil pusher. I'm not a pencil pusher. I'm not a pencil pusher.
+          </span>
+          <span class="scrolling-text">
+            I'm not a pencil pusher. I'm not a pencil pusher. I'm not a pencil
+            pusher. I'm not a pencil pusher. I'm not a pencil pusher. I'm not a
+            pencil pusher. I'm not a pencil pusher. I'm not a pencil pusher. I'm
+            not a pencil pusher. I'm not a pencil pusher. I'm not a pencil
+            pusher. I'm not a pencil pusher. I'm not a pencil pusher. I'm not a
+            pencil pusher. I'm not a pencil pusher. I'm not a pencil pusher.
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="container-fluid" id="about">
+    <div id="astronautContainer" aria-hidden="true"></div>
+    <div class="fullHeightSection d-flex flex-column justify-content-start">
+      <h1 class="display-1 fw-bold inter-tight lessMassiveText text-black">
+        About Me
+      </h1>
+      <div class="row mt-0 mt-lg-5">
+        <div class="col-lg-6"></div>
+        <div class="col-lg-6 pb-3 pb-lg-5" id="aboutMeContent">
+          <div>
+            <div
+              class="card border-radius-50 shadow border-0 p-xl-5 p-2 text-white bg-black"
+              id="aboutMeCard"
+              data-bs-theme="dark"
+            >
+              <div class="card-body">
+                <ul class="fs-4 mb-0">
+                  <li>Full-stack/frontend/jack-of-all-trades developer</li>
+                  <li>Based out of Chicago, USA</li>
+                  <li>23 years-old</li>
+                  <li>Primarily self-taught</li>
+                  <li>Professional experience @ EY, Caterpillar, Uline</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="bg-black" id="freelance">
+    <div class="container-fluid text-white pb-5">
+      <h1 class="display-1 fw-bold inter-tight evenLessMassiveText pt-3">
+        Freelance
+      </h1>
+      <div class="row mt-5">
+        <div class="col-lg-8">
+          <VideoCard
+            videoNameOnCDN="v1728329177/perfectstripe_ktirxe.mp4"
+            videoPosterNameOnCDN="v1728329150/perfectstripeposter_veqlhj.png"
+            altText="The Perfect Stripe website home page"
+            dataSpeed="0.1"
+          />
+        </div>
+        <div class="col-lg-4 h-100 align-self-center p-3 p-lg-5">
+          <h2 class="display-6 fw-bold">
+            <a
+              href="https://theperfectstripe.com/"
+              class="text-white text-decoration-none"
+              target="_blank"
+              rel="noopener noreferrer"
+              >The Perfect Stripe <i
+                class="bi bi-box-arrow-up-right"
+                aria-hidden="true"></i></a
+            >
+          </h2><hr class="d-none d-lg-block" />
+          <p class="fs-5">
+            Static website for client's small business based in Dallas, TX.
+            Minimalist front-end design, SEO, and copywriting.
+          </p>
+        </div>
+      </div>
+      <div class="row mt-2 mt-lg-5 pb-3">
+        <div
+          class="col-lg-4 h-100 align-self-center p-3 p-lg-5 order-last order-lg-first"
+        >
+          <h2 class="display-6 fw-bold">
+            <a
+              href="https://sanctorumpodcast.com/"
+              class="text-white text-decoration-none"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Sanctorum <i class="bi bi-box-arrow-up-right" aria-hidden="true"
+              ></i></a
+            >
+          </h2><hr class="d-none d-lg-block" />
+          <p class="fs-5">
+            Static website for client's podcast. Decap CMS integration and
+            Three.js hero section.
+          </p>
+        </div>
+        <div class="col-lg-8 order-first order-lg-last">
+          <VideoCard
+            videoNameOnCDN="v1728329984/sanctorum-video-2_-_Made_with_Clipchamp_xaav5t.mp4"
+            videoPosterNameOnCDN="v1728329150/sanctorumposter_gzdns5.png"
+            altText="Sanctorum Podcast website hero section animations"
+            dataSpeed="0.1"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="bg-primary fullHeightSection" id="personal">
+    <div class="container-fluid text-white pb-5">
+      <h1 class="display-1 fw-bold inter-tight evenLessMassiveText pt-3">
+        Personal
+      </h1>
+      <p class="ps-1">
+        <a
+          href="https://github.com/kloovin112358"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-decoration-none text-white fw-bold"
+          >View my full portfolio on GitHub <i class="bi bi-box-arrow-up-right"
+          ></i></a
+        >
+      </p>
+      <div class="card border-radius-50 mt-4 mt-lg-5">
+        <div class="card-body p-3 p-lg-5">
+          <div class="d-block d-lg-none">
+            <ul
+              class="nav nav-pills bg-white p-3"
+              id="pills-tab"
+              role="tablist"
+            >
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active"
+                  id="pills-fastfilter-tab"
+                  data-bs-toggle="pill"
+                  data-tab="fastfilter"
+                  data-bs-target="#v-pills-fastfilter"
+                  type="button"
+                  role="tab"
+                  aria-controls="pills-fastfilter"
+                  aria-selected="true">Fast Filter</button
+                >
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="pills-redflag-tab"
+                  data-bs-toggle="pill"
+                  data-tab="redflag"
+                  data-bs-target="#v-pills-redflag"
+                  type="button"
+                  role="tab"
+                  aria-controls="pills-redflag"
+                  aria-selected="false">Red Flag Hunter</button
+                >
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="pills-likealocal-tab"
+                  data-bs-toggle="pill"
+                  data-tab="likealocal"
+                  data-bs-target="#v-pills-likealocal"
+                  type="button"
+                  role="tab"
+                  aria-controls="pills-likealocal"
+                  aria-selected="false">Chicago Like a Local</button
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="d-flex">
+            <div class="d-none d-lg-flex align-items-start me-3">
+              <div
+                id="largeTabsList"
+                class="nav nav-pills flex-column px-4 leftNavSection"
+                role="tablist"
+                aria-orientation="vertical"
+                data-bs-theme="dark"
+              >
+                <button
+                  class="nav-link active"
+                  id="v-pills-fastfilter-tab"
+                  data-bs-toggle="pill"
+                  data-bs-target="#v-pills-fastfilter"
+                  data-tab="fastfilter"
+                  type="button"
+                  role="tab"
+                  aria-controls="v-pills-fastfilter"
+                  aria-selected="true"
+                >
+                  Fast Filter
+                </button>
+                <button
+                  class="nav-link"
+                  id="v-pills-redflag-tab"
+                  data-bs-toggle="pill"
+                  data-bs-target="#v-pills-redflag"
+                  data-tab="redflag"
+                  type="button"
+                  role="tab"
+                  aria-controls="v-pills-redflag"
+                  aria-selected="false"
+                >
+                  Red Flag Hunter
+                </button>
+                <button
+                  class="nav-link"
+                  id="v-pills-likealocal-tab"
+                  data-bs-toggle="pill"
+                  data-bs-target="#v-pills-likealocal"
+                  data-tab="likealocal"
+                  type="button"
+                  role="tab"
+                  aria-controls="v-pills-likealocal"
+                  aria-selected="false"
+                >
+                  Chicago Like a Local
+                </button>
+              </div>
+            </div>
+            <div
+              class="tab-content flex-grow-1 px-3 px-lg-0 pb-5 pb-lg-0"
+              id="v-pills-tabContent"
+            >
+              <div
+                class="tab-pane fade show active"
+                id="v-pills-fastfilter"
+                role="tabpanel"
+                aria-labelledby="v-pills-fastfilter-tab"
+                tabindex="0"
+              >
+                <h2 class="display-3 fw-bold lh-1 inter-tight pe-0 pe-lg-5">
+                  <a
+                    href="https://chromewebstore.google.com/detail/fast-filter-chicago-apart/ialcjmolcjcbgbkmdlfjofmpodcgefpa"
+                    class="text-decoration-none text-black"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Apartments Fast Filter Browser Extension <i
+                      class="bi bi-box-arrow-up-right"></i></a
+                  >
+                </h2>
+                <p class="fs-6 lh-1 mb-4">
+                  Allows users to apply apartment search filters to 13 listing
+                  sites without having to repeat clicks.
+                </p>
+                <video
+                  muted
+                  style="width:100%;height:100%;"
+                  class="player"
+                  poster="https://res.cloudinary.com/dvbmnr7qn/image/upload/f_webp/q_auto:good/v1728584235/fastfilter-thumbnail-1920x940_rblzwb.png"
+                  src="https://res.cloudinary.com/dvbmnr7qn/video/upload/f_webm/q_auto/c_crop,g_north,h_940,w_1920/v1728514151/fastfilter2_zbfhkt.mp4"
+                ></video>
+              </div>
+              <div
+                class="tab-pane fade"
+                id="v-pills-redflag"
+                role="tabpanel"
+                aria-labelledby="v-pills-redflag-tab"
+                tabindex="0"
+              >
+                <h2 class="display-4 fw-bold lh-1 inter-tight pe-0 pe-lg-5">
+                  <a
+                    href="https://chromewebstore.google.com/detail/apartmentscom-red-flag-hu/bmkbfjinpnangbclabhhjkmjebpghacb"
+                    class="text-decoration-none text-black"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Apartments.com Red Flag Hunter Browser Extension <i
+                      class="bi bi-box-arrow-up-right"></i></a
+                  >
+                </h2>
+                <p class="fs-6 lh-1 mb-4">
+                  Reviews listings on Apartments.com and seeks out red flags
+                  that may be easy to miss, buried in the description.
+                </p>
+                <video
+                  muted
+                  class="player"
+                  style="width:100%;height:100%;"
+                  poster="https://res.cloudinary.com/dvbmnr7qn/image/upload/f_webp/q_auto:good/v1728582874/redflaghunter-thumbnail-1920x940_oizyxr.png"
+                  src="https://res.cloudinary.com/dvbmnr7qn/video/upload/f_webm/q_auto/c_crop,g_north,h_940,w_1920/v1728514150/redflag_ozotep.mp4"
+                ></video>
+              </div>
+              <div
+                class="tab-pane fade"
+                id="v-pills-likealocal"
+                role="tabpanel"
+                aria-labelledby="v-pills-likealocal-tab"
+                tabindex="0"
+              >
+                <h2 class="display-3 fw-bold lh-1 inter-tight pe-0 pe-lg-5">
+                  <a
+                    href="https://www.youtube.com/@ChicagoLikeALocal"
+                    class="text-decoration-none text-black"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Chicago Like a Local YouTube Channel <i
+                      class="bi bi-box-arrow-up-right"></i></a
+                  >
+                </h2>
+                <p class="fs-6 lh-1 mb-4">
+                  Personal YouTube channel with 75k views and 1M impressions.
+                  Uploaded 50 videos in 51 days.
+                </p>
+                <video
+                  muted
+                  class="player"
+                  style="width:100%;height:100%;"
+                  poster="https://res.cloudinary.com/dvbmnr7qn/image/upload/f_webp/q_auto:good/v1728582257/chicagolikealocal-thumbnail-1920x940_iuaqfg.png"
+                  src="https://res.cloudinary.com/dvbmnr7qn/video/upload/f_webm/q_auto/c_crop,g_north,h_940,w_1920/v1728351223/chicagolikealocalvid_-_Made_with_Clipchamp_fayfxi.mp4"
+                ></video>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="fullHeightSection bg-black text-white" id="resume">
+    <div class="container-fluid pb-5">
+      <h1 class="display-1 fw-bold inter-tight lessMassiveText pt-3">Résumé</h1>
+      <p class="ps-1">
+        <a
+          href="https://www.linkedin.com/in/ktlauer"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-decoration-none text-white"
+          >View the full details on LinkedIn <i class="bi bi-box-arrow-up-right"
+          ></i></a
+        >
+      </p>
+      <div
+        class="d-flex mt-5 gap-3 pe-5"
+        style="overflow-x: hidden;"
+        id="resumeCarousel"
+        role="region"
+        aria-label="Resume Carousel"
+        aria-live="polite"
+        style="margin-left:8px;"
+      >
+        <ResumeCard
+          companyName="Freelance"
+          dateStart="Aug. 2024"
+          dateEnd="Present"
+          jobRole="Software Developer"
+          descriptionText="Building cool web/other software projects for clients"
+          backgroundColorHover="#FF0000"
+          textColorHover="white"
+          borderHover="1px solid white"
+          siteLink="https://kevinlauer.dev/"
+          slideIndex="1"
+        />
+        <ResumeCard
+          companyName="Ernst & Young"
+          dateStart="Jan. 2023"
+          dateEnd="Aug. 2024"
+          jobRole="Tech Consultant - Supply Chain"
+          descriptionText="Consulted on Logistics & Fulfillment and Manufacturing Technology projects"
+          backgroundColorHover="rgb(255, 230, 0)"
+          siteLink="https://www.ey.com/en_us"
+          slideIndex="2"
+        />
+        <ResumeCard
+          companyName="Uline"
+          dateStart="May 2022"
+          dateEnd="Aug. 2022"
+          jobRole="Software Development Intern"
+          descriptionText="Developed enhancements and bug fixes on a scrum team for uline.com"
+          backgroundColorHover="#1E4D9E"
+          textColorHover="white"
+          borderHover="1px solid white"
+          siteLink="https://www.uline.com/"
+          slideIndex="3"
+        />
+        <ResumeCard
+          companyName="Caterpillar"
+          dateStart="Dec. 2020"
+          dateEnd="May 2022"
+          jobRole="Software Development Intern"
+          descriptionText="Developed full-stack applications on an internal automation/process replacement website"
+          backgroundColorHover="#FFCD11"
+          siteLink="https://www.caterpillar.com/"
+          slideIndex="4"
+        />
+        <ResumeCard
+          companyName="Caterpillar"
+          dateStart="Oct. 2020"
+          dateEnd="Dec. 2020"
+          jobRole="Data Analytics Intern"
+          descriptionText="Developed part demand forecasting models throughout the short-term project"
+          backgroundColorHover="#FFCD11"
+          siteLink="https://www.caterpillar.com/"
+          slideIndex="5"
+        />
+        <ResumeCard
+          companyName="Synergetic Industries, LLC"
+          dateStart="Mar. 2020"
+          dateEnd="Oct. 2020"
+          jobRole="Industrial Engineering Intern"
+          descriptionText="Assisted with job quotes and developed time-saving technology for quoting and order processing"
+          backgroundColorHover="#740f15"
+          textColorHover="white"
+          borderHover="1px solid white"
+          siteLink="http://synergeticindustries.com/"
+          slideIndex="6"
+        />
+      </div>
+      <div class="mt-3" style="margin-left:8px;">
+        <button
+          class="btn btn-lg btn-light border-radius-50 me-2"
+          aria-label="Previous Slide"
+          tabindex="0"
+          aria-label="Next Slide"
+          tabindex="0"
+          id="prev"><i class="bi bi-caret-left-fill display-6"></i></button
+        >
+        <button class="btn btn-lg btn-light border-radius-50" id="next"
+          ><i class="bi bi-caret-right-fill display-6"></i></button
+        >
+      </div>
+    </div>
+  </section>
+  <section class="fullHeightSection" id="whyme">
+    <div class="container-fluid pb-5">
+      <h1 class="display-1 fw-bold inter-tight lessMassiveText pt-3 text-black">
+        Why Me
+      </h1>
+      <div
+        class="accordion accordion-flush mt-3 mt-lg-5"
+        id="accordionFlushExample"
+      >
+        <div class="accordion" id="accordionFlushExample">
+          <!-- Accordion Item #1 -->
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed fs-1"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#flush-collapseOne"
+                aria-expanded="false"
+                aria-controls="flush-collapseOne"
+              >
+                You know that feeling when you get really into a Netflix show
+                and suddenly doing the dishes and cleaning and answering your
+                text messages and showering all feel like minor details that can
+                be ignored?
+              </button>
+            </h2>
+            <div
+              id="flush-collapseOne"
+              class="accordion-collapse collapse"
+              data-bs-parent="#accordionFlushExample"
+            >
+              <div class="accordion-body fs-1">
+                <p class="pb-0 mb-0">
+                  That's how obsessed I am with building great web applications.
+                  I just can't help it—the thought of publishing something
+                  half-baked gives me the heebie-jeebies.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion Item #2 -->
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed fs-1"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#flush-collapseTwo"
+                aria-expanded="false"
+                aria-controls="flush-collapseTwo"
+              >
+                You know that feeling when you spend 15 minutes thinking of the
+                most brilliantly witty thing to text in a group chat, then
+                nobody responds to it?
+              </button>
+            </h2>
+            <div
+              id="flush-collapseTwo"
+              class="accordion-collapse collapse"
+              data-bs-parent="#accordionFlushExample"
+            >
+              <div class="accordion-body fs-1">
+                <p class="pb-0 mb-0">
+                  I try to fail at that magnitude every day. That's why I quit
+                  my day job to be an entrepreneur, where I knew I'd have more
+                  fails per week than at any other time in my life. For me,
+                  learning and growing is the prize.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion Item #3 -->
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed fs-1"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#flush-collapseThree"
+                aria-expanded="false"
+                aria-controls="flush-collapseThree"
+              >
+                You know when you're cooking with your mom and she tells you a
+                bunch of important things, and you think you've internalized
+                them, but when you go back later to recreate the recipe, you've
+                remembered nothing?
+              </button>
+            </h2>
+            <div
+              id="flush-collapseThree"
+              class="accordion-collapse collapse"
+              data-bs-parent="#accordionFlushExample"
+            >
+              <div class="accordion-body fs-1">
+                <p class="pb-0 mb-0">
+                  With programming, I've hardly ever had a senior developer to
+                  hold my hand through development. I learned web development by
+                  trial and error. I learned the hard way what cascade delete
+                  means in database tables. But, because I learned in this way,
+                  I'll never forget the important things.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="fs-3 mt-3 mt-lg-5 ps-1 fw-bold">
+        Contact: <a
+          href="mailto:ktlauer@proton.me"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-decoration-none px-2 bg-primary text-white"
+          >ktlauer@proton.me</a
+        >
+      </p>
+    </div>
+  </section>
+</Layout>
